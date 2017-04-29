@@ -5,8 +5,10 @@
  */
 public class Semester {
 
-    public Semester(CourseData[] classes){
+    CourseData couseLoad[];
 
+    public Semester(CourseData[] courses){
+        this.couseLoad = courses;
     }
 
 
