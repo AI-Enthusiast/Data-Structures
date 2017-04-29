@@ -3,7 +3,7 @@
  *
  * @author Cormac Dacker cxd289
  */
-public class Sorting {
+class Sorting {
 
     //FIELDS
     private static long time = System.currentTimeMillis();
@@ -19,7 +19,7 @@ public class Sorting {
      *
      * @param arr the array being sorted
      */
-    public static void heapSort(int[] arr) {
+    static void heapSort(int[] arr) {
         long zero = startTime();
         if (! inOrder(arr)) {
             for (int i = arr.length / 2 - 1; i >= 0; i--) {
@@ -40,7 +40,7 @@ public class Sorting {
      *
      * @param arr the array being sorted
      */
-    public static void quickSort(int[] arr) {
+    static void quickSort(int[] arr) {
         long zero = startTime();
         if (! inOrder(arr)) {
             quickSort(arr, 0, arr.length);
@@ -53,7 +53,7 @@ public class Sorting {
      *
      * @param arr the array to be sorted
      */
-    public static void mergeSort(int[] arr) {
+    static void mergeSort(int[] arr) {
         long zero = startTime();
         if (! inOrder(arr)) {
             int[] fromHere = arr;
@@ -208,7 +208,7 @@ public class Sorting {
         /* add in the original pivot in its new position */
         sub[left] = arr[pivot];
         /* copy back into the original array */
-        System.arraycopy(sub, start - start, arr, start, end - start);
+        System.arraycopy(sub, 0, arr, start, end - start);
         /* potential for StackOverflow Error */
         /* translate new pivot position into full list index */
         left += start;
@@ -224,7 +224,7 @@ public class Sorting {
      * @return time
      */
     private static long startTime() {
-        return System.currentTimeMillis();
+        return System.nanoTime() / 1000;
     }
 
     /**
@@ -233,11 +233,11 @@ public class Sorting {
      * @param zero the start time (not actually 0)
      */
     private static void stopTime(long zero) {
-        setTime(System.currentTimeMillis() - zero);
+        setTime((System.nanoTime()/1000) - zero);
     }
 
     //GETTER/SETTERS
-    private static long getTime() {
+    static long getTime() {
         return time;
     }
 
