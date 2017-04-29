@@ -1,5 +1,7 @@
 /**
  * ClassData represents the class, and all useful information that can aid in determining
+ * @author Cormac
+ * @since 4/25/17
  */
 public class CourseData {
 
