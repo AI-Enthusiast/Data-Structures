@@ -118,6 +118,7 @@ class AStar:
     def aStar(self, puzzle, depth=0, pathTaken=[]):
         open, closed = [], [] #nodes to visit, nodes to not visit
         open.append(puzzle)
+        print(open)
         while open is not None:
             self.chooseBranch(puzzle,closed)
             if ep.isGoal(puzzle):

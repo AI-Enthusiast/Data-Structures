@@ -1,5 +1,5 @@
 from Code.SlavesToTheMain import EightPuzzle as ep
-
+from Code.SlavesToTheMain import AStar
 def error(errorMessage):
     print(">ERROR:\t" + str(errorMessage))
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         elif userIn[0] == ('state' or 'setState' or 'random'):
             uI = ' '.join(userIn[1:]).lower().replace(' ', '' )
             try:
-                puzzle = ep.EightPuzzle(uI)
+                puzzle = ep.EightPuzzle(state=uI)
                 newGame = False
             except ValueError:
                 continue
@@ -57,12 +57,14 @@ if __name__ == "__main__":
                         continue  # goto next iteration in the loop
             elif(userIn[0]) == "solve":
                 if userIn[1] == "a-star":
-                    puzzle.solve_AStar()
+                    AStar.AStar(puzzle.oneD)
                 elif userIn[1] == "beam":
-                    puzzle.solve_Beam()
+                    ep.solve_Beam(puzzle.oneD)
+                else:
+                    AStar.AStar(puzzle.oneD)
+
             elif userIn[0] == ("printState" or 'print'):
                 puzzle.__str__()
-                puzzle.printState()
             else:
                 print("> Please enter a valid command or type 'help'")
         else:
