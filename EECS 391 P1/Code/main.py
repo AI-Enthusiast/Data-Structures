@@ -12,6 +12,7 @@ if __name__ == "__main__":
     puzzle = None
     while True:
 
+
         userIn = input('>>').lower().split()  # splits the input at every space
 
         if len(userIn) == 0:

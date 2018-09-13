@@ -26,7 +26,7 @@ def isGoal(puzzle):
 class EightPuzzle:
 
     # Constructor
-    # state(as a string of length 9), (parent a node), b(location of the b tile)
+    # Params: state(as a string of length 9), parent (TEMP TBA), b(location of the b tile)
     def __init__(self, state="random", parent=None, b=None):
         self.Parent = parent
         self.B = b
@@ -97,6 +97,13 @@ class EightPuzzle:
             tile[3], tile[4], tile[5],
             tile[6], tile[7], tile[8])
         print(out)
+
+    def generateSolutionPath(self, path):
+        if self.Parent is None:
+            return path
+        else:
+            return self.Parent.generateSolutionPath()
+            #TODO figure out weather parent is a list of 8puzzles, states, chars(representing directions)
 
     # Moves the tile up, down, left, right
     # setting ( 0 = return states instead of setting them, 1 = set states at each move)
