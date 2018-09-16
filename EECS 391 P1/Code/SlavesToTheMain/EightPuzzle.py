@@ -17,7 +17,7 @@ def error(errorMessage):
 
 # Checks if the goal has been met
 def isGoal(puzzle):
-    for i in range(len(puzzle)):  # itterates through oneD and goal double checking they match
+    for i in range(len(puzzle)):  # itterates through State and goal double checking they match
         if goal[i] != puzzle[i]:  # if they dont match
             return False
     return True
@@ -27,18 +27,19 @@ class EightPuzzle:
 
     # Constructor
     # Params: state(as a string of length 9), parent (TEMP TBA), b(location of the b tile)
-    def __init__(self, state="random", parent=None, b=None):
+    def __init__(self, state="random", parent=None, b=None, depth =0):
         self.Parent = parent
         self.B = b
+        self.Depth = depth
         if state.lower() == "random":  # default to random
             self.randomizeState()
         else:
             try:
                 if self.Parent is None:
                     if self.validState(state):
-                        self.oneD = list(state.replace(' ', ''))  # finally sets the state to oneD for one dimention
+                        self.State = list(state.replace(' ', ''))  # finally sets the state to State for one dimention
                 else:  # we don't need to validate it if it has a parent. it must be originating from a valid state.
-                    self.oneD = list(state.replace(' ', ''))  # finally sets the state to oneD for one dimention
+                    self.State = list(state.replace(' ', ''))  # finally sets the state to State for one dimention
             except ValueError and TypeError as e:  # if you gave a screwy state
                 error(e)
                 # TODO double check user inputed states are solvable
@@ -65,23 +66,15 @@ class EightPuzzle:
                 "Please format the desiered state correctly, e.g. 'b12 345 678'. Must be of length 9. "
                 "You entered a string of length", len(state), state)
 
-    # Sets the puzzle state (e.g. "b12 345 678")
-    def setState(self, state):
-        if self.Parent is None:
-            if self.validState(state):
-                self.oneD = list(state.replace(' ', ''))  # finally sets the state to oneD for one dimention
-        else:  # we don't need to validate it if it has a parent. it must be originating from a valid state, thus is valid.
-            self.oneD = list(state.replace(' ', ''))  # finally sets the state to oneD for one dimention
-
-    def randomizeState(self):
-        self.oneD = 'b12345678' # sets 1d state
+    def randomizeState(self, range=100):
+        self.State = 'b12345678' # sets 1d state
         self.B = 0 # location of the b tile
         # loop moves the blank piece 100 times in random directions
-        for i in range(100):
+        for i in range(range):
             moves = self.move(0)
             ran = random.randint(0, len(moves) - 1)  # produce a random int between 1 and num of moves
             try:
-                self.oneD = moves[ran] # sets state to chosen random move
+                self.State = moves[ran] # sets state to chosen random move
                 self.findB() # updates the location of the b tile
             except UnboundLocalError:  # if it can't move that way
                 i += 1  # don't let it miss a move
@@ -89,7 +82,7 @@ class EightPuzzle:
 
     # creates a string to visually represent the board
     def __str__(self):
-        tile = self.oneD
+        tile = self.State
         out = "\n{0}\t{1}\t{2}\n" \
               "{3}\t{4}\t{5}\n" \
               "{6}\t{7}\t{8}\n".format(
@@ -98,11 +91,11 @@ class EightPuzzle:
             tile[6], tile[7], tile[8])
         print(out)
 
-    def generateSolutionPath(self, path):
+    def generateSolutionPath(self, path=[]):
         if self.Parent is None:
-            return path
+            return path.reverse() # reverse order as they are added in
         else:
-            return self.Parent.generateSolutionPath()
+            return self.Parent.generateSolutionPath(path.append(self.Parent))
             #TODO figure out weather parent is a list of 8puzzles, states, chars(representing directions)
 
     # Moves the tile up, down, left, right
@@ -136,13 +129,13 @@ class EightPuzzle:
         else:
             if setting == 1: # set move to current state
                 # performs a switch
-                temp = self.oneD[self.B - 3]
-                self.oneD[self.B - 3] = self.oneD[self.B]
-                self.oneD[self.B] = temp
+                temp = self.State[self.B - 3]
+                self.State[self.B - 3] = self.State[self.B]
+                self.State[self.B] = temp
                 # update B's location
                 self.B = self.B - 3
             else: # return the state of the move
-                probe = EightPuzzle(self.oneD, b=self.B)
+                probe = EightPuzzle(self.State, b=self.B)
                 probe.moveUp()
                 return probe.self.oneD
 
@@ -154,13 +147,13 @@ class EightPuzzle:
         else:
             if setting == 1: # set move to current state
                 # performs a switch
-                temp = self.oneD[self.B + 3]
-                self.oneD[self.B + 3] = self.oneD[self.B]
-                self.oneD[self.B] = temp
+                temp = self.State[self.B + 3]
+                self.State[self.B + 3] = self.State[self.B]
+                self.State[self.B] = temp
                 # update B's location
                 self.B = self.B + 3
             else:# return the state of the move
-                probe = EightPuzzle(self.oneD, b=self.B)
+                probe = EightPuzzle(self.State, b=self.B)
                 probe.moveDown()
                 return probe.self.oneD
 
@@ -172,13 +165,13 @@ class EightPuzzle:
         else:
             if setting == 1: # set move to current state
                 # performs a switch
-                temp = self.oneD[self.B - 1]
-                self.oneD[self.B - 1] = self.oneD[self.B]
-                self.oneD[self.B] = temp
+                temp = self.State[self.B - 1]
+                self.State[self.B - 1] = self.State[self.B]
+                self.State[self.B] = temp
                 # update B's location
                 self.B = self.B - 1
             else: # return the state of the move
-                probe = EightPuzzle(self.oneD, b=self.B)
+                probe = EightPuzzle(self.State, b=self.B)
                 probe.moveLeft()
                 return probe.self.oneD
 
@@ -190,27 +183,28 @@ class EightPuzzle:
         else:
             if setting == 1: # set move to current state
                 # performs a switch
-                temp = self.oneD[self.B + 1]
-                self.oneD[self.B + 1] = self.oneD[self.B]
-                self.oneD[self.B] = temp
+                temp = self.State[self.B + 1]
+                self.State[self.B + 1] = self.State[self.B]
+                self.State[self.B] = temp
                 # update B's location
                 self.B = self.B + 1
             else:  # return the state of the move
-                probe = EightPuzzle(self.oneD, b=self.B)
+                probe = EightPuzzle(self.State, b=self.B)
                 probe.moveRight()
                 return probe.self.oneD
 
 
     def findB(self):
-        for i in range(len(self.oneD)):
-            if self.oneD[i] == 'b':
+        for i in range(len(self.State)):
+            if self.State[i] == 'b':
                 self.B = i # new B's location
                 break
 
-def solve_Beam(self):
+def solve_Beam():
     print('temp')
 
-
+def solve_AStar(state):
+    AStar.AStar(state)
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         uI = sys.argv[1:]

@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
         if len(userIn) == 0:
             puzzle = ep.EightPuzzle('random')
-            print(puzzle.solve_AStar())
+            puzzle.solve_AStar()
             newGame = False
         elif userIn[0] == ('state' or 'setState' or 'random'):
             uI = ' '.join(userIn[1:]).lower().replace(' ', '' )
@@ -58,11 +58,11 @@ if __name__ == "__main__":
                         continue  # goto next iteration in the loop
             elif(userIn[0]) == "solve":
                 if userIn[1] == "a-star":
-                    AStar.AStar(puzzle.oneD)
+                    AStar.AStar(puzzle.State)
                 elif userIn[1] == "beam":
-                    ep.solve_Beam(puzzle.oneD)
+                    ep.solve_Beam(puzzle.State)
                 else:
-                    AStar.AStar(puzzle.oneD)
+                    AStar.AStar(puzzle.State)
 
             elif userIn[0] == ("printState" or 'print'):
                 puzzle.__str__()
