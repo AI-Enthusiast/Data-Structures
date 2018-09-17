@@ -16,8 +16,8 @@ if __name__ == "__main__":
         userIn = input('>>').lower().split()  # splits the input at every space
 
         if len(userIn) == 0:
-            puzzle = ep.EightPuzzle('random')
-            puzzle.solve_AStar()
+            puzzle = ep.EightPuzzle(state='random')
+            ep.solve_AStar(puzzle)
             newGame = False
         elif userIn[0] == ('state' or 'setState' or 'random'):
             uI = ' '.join(userIn[1:]).lower().replace(' ', '' )
@@ -26,7 +26,6 @@ if __name__ == "__main__":
                 newGame = False
             except ValueError:
                 continue
-            puzzle.__str__()
         elif userIn[0] == 'help':
             print("TEMP")
         elif (not newGame):
@@ -56,6 +55,7 @@ if __name__ == "__main__":
                         newGame = True
                         print("> Please enter a starting state or type 'random'")
                         continue  # goto next iteration in the loop
+
             elif(userIn[0]) == "solve":
                 if userIn[1] == "a-star":
                     AStar.AStar(puzzle.State)

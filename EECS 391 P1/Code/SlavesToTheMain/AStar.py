@@ -2,6 +2,7 @@
 # DateCreated: 9/7/18
 # Author: Cormac Dacker (cxd289)
 import heapq
+from typing import List
 
 from Code.SlavesToTheMain import EightPuzzle as ep
 
@@ -14,7 +15,7 @@ class AStar:
 
     def __init__(self, puzzle, maxNodes=27):
         self.MaxNodes = maxNodes
-        print(self.aStar(ep.EightPuzzle(state=puzzle))) #print aStar solution
+        print(self.aStar(puzzle)) #print aStar solution
 
     # First Heuristic is based on the number of tiles out of place
     # the less the better
@@ -67,7 +68,7 @@ class AStar:
         funcHeap = []
         for branch in range(len(tree)):  # build the heaps
             heapq.heappush(funcHeap, [self.f(tree[branch]), tree[branch]])
-        return heapq.heappop(funcHeap)[1] # returns the puzzle
+        return heapq.heappop(funcHeap)[1] # returns the puzzle on top
 
     def aStar(self, puzzle):
         open, closed = [], {} #nodes to visit, nodes to not visit
@@ -77,13 +78,16 @@ class AStar:
             # add the starting puzzle to open
             open.append(puzzle)
             while open is not None: #while there are still nodes to expand in open
-                branch = self.chooseBranch(open)
-                stems = branch.move()
-                if ep.isGoal(puzzle):
-                    print("Solution found")
-                    break
-
-
+                print('open',open)
+                branch = self.chooseBranch(open)  # type: ep.EightPuzzle #choose a branch from open
+                newBranches = branch.move(0)  # type: List[ep.EightPuzzle]
+                print('moves',newBranches)
+                for stem in range(len(newBranches)): #for each expantion of the branch
+                    if ep.isGoal(puzzle.State): # if it's the goal
+                        return puzzle.generateSolutionPath()
+                    if newBranches[stem] not in closed: #if not in closed
+                        open.append(newBranches[stem]) # add stem to open nodes
+                closed[branch.State] = branch
 
 
 
