@@ -108,7 +108,6 @@ class EightPuzzle:
         else:
             path.append(self.Parent[0])
             return self.Parent[1].generateSolutionPath(path)  # recursively self call for path
-            # TODO figure out weather parent is a list of 8puzzles, states, chars(representing directions)
 
     # Finds the location of the b tile
     def findB(self):

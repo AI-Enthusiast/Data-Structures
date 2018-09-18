@@ -62,7 +62,6 @@ class AStar:
     def f(self, puzzle):
         return (self.h1(puzzle) + self.h2(puzzle))
 
-    # TODO crossrefrence direction and state
     # Chooses a branch based off a heaps representing the heuristic function of the puzzles
     def chooseBranch(self, open):
         funcHeap = []
