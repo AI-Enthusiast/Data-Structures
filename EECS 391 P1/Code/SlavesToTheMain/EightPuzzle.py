@@ -4,6 +4,7 @@
 
 import random
 import sys
+from typing import List
 
 from Code.SlavesToTheMain import AStar
 
@@ -33,12 +34,14 @@ class EightPuzzle:
         self.B = b
         self.Depth = depth
         if str(state).lower() == "random":  # default to random
-            self.randomizeState(100)
+            self.randomizeState(random)
+            self.__str__()
         else:
             try:
                 if self.Parent is None:
                     if self.validState(state):
                         self.State = str(state).replace(' ', '')  # finally sets the state to State for one dimention
+                        self.__str__()
                 else:  # we don't need to validate it if it has a parent. it must be originating from a valid state.
                     self.State = str(state).replace(' ', '')  # finally sets the state to State for one dimention
             except ValueError and TypeError as e:  # if you gave a screwy state
@@ -46,7 +49,10 @@ class EightPuzzle:
                 # TODO double check user inputed states are solvable
                 print('Setting state to random instead')
                 self.randomizeState()
-        self.__str__()
+
+    # allows for EightPuzzle() < EightPuzzle() conparison
+    def __lt__(self, other):
+        return self.__hash__() < other.__hash__()
 
     def validState(self, state):
         # double checks it's of the right length(you can never trust the user)
@@ -74,10 +80,10 @@ class EightPuzzle:
         self.B = 0  # location of the b tile
         # loop moves the blank piece 100 times in random directions
         for i in range(0, r):
-            moves = self.move(0)
+            moves = move(self, 0)  # type: List[EightPuzzle]
             ran = random.randint(0, len(moves) - 1)  # produce a random int between 1 and num of moves
             try:
-                self.State = moves[ran]  # sets state to chosen random move
+                self.State = moves[ran].State  # sets state to chosen random move
                 self.findB()  # updates the location of the b tile
             except UnboundLocalError:  # if it can't move that way
                 i += 1  # don't let it miss a move
@@ -94,105 +100,110 @@ class EightPuzzle:
             tile[6], tile[7], tile[8])
         print(out)
 
-    def generateSolutionPath(self, path=[]):
+    # Creates the path to the parent from the current node (this assumes that node is the goal)
+    def generateSolutionPath(self, path: List = []):
         if self.Parent is None:
-            return path.reverse()  # reverse order as they are added in
+            path.reverse()
+            return ' --> '.join(path)  # reverse order as they are added in
         else:
-            return self.Parent.generateSolutionPath(path.append(self.Parent))
+            path.append(self.Parent[0])
+            return self.Parent[1].generateSolutionPath(path)  # recursively self call for path
             # TODO figure out weather parent is a list of 8puzzles, states, chars(representing directions)
 
-    # Moves the tile up, down, left, right
-    # setting ( 0 = return states instead of setting them, 1 = set states at each move)
-    # the setting in this case is just to pass it along to lower level helpers
-    def move(self, setting=1):
-        moves = []
-        try:
-            moves.append(self.moveUp(setting))  # move up
-        except UnboundLocalError:  # cant go up
-            pass
-        try:
-            moves.append(self.moveDown(setting))  # move down
-        except UnboundLocalError:  # cant go down
-            pass
-        try:
-            moves.append(self.moveLeft(setting))  # move left
-        except UnboundLocalError:  # cant go left
-            pass
-        try:
-            moves.append(self.moveRight(setting))  # move right
-        except UnboundLocalError:  # cant go right
-            pass
-        return moves
-
-    # Moves the blank tile up
-    # setting ( 0 = return states instead of setting them, 1 = set states at each move)
-    def moveUp(self, setting=1):
-        if (self.B - 3) < 0:  # check to see if it's in bounds
-            raise UnboundLocalError
-        else:
-            if setting == 1:  # set move to current state
-                self.swap(self.B, self.B - 3)
-            else:  # return the state of the move
-                return swap(self.State, self.B, self.B - 3)
-
-    # Moves the blank tile down
-    # setting ( 0 = return states instead of setting them, 1 = set states at each move)
-    def moveDown(self, setting=1):
-        if (self.B + 3) > 8:  # check to see if it's in bounds
-            raise UnboundLocalError
-        else:
-            if setting == 1:  # set move to current state
-                self.swap(self.B, self.B + 3)
-            else:  # return the state of the move
-                return swap(self.State, self.B, self.B + 3)
-
-    # Moves the blank tile left
-    # setting ( 0 = return states instead of setting them, 1 = set states at each move)
-    def moveLeft(self, setting=1):
-        if (self.B % 3) == 0:  # check to see if it's in bounds
-            raise UnboundLocalError
-        else:
-            if setting == 1:  # set move to current state
-                self.swap(self.B, self.B - 1)
-            else:  # return the state of the move
-                return swap(self.State, self.B, self.B - 1) #TODO determin weather EP or state will be output
-
-    # Moves the blank tile right
-    # setting ( 0 = return states instead of setting them, 1 = set states at each move)
-    def moveRight(self, setting=1):
-        if (self.B + 1) % 3 == 0:  # check to see if it's in bounds
-            raise UnboundLocalError
-        else:
-            state = list(self.State)
-            if setting == 1:  # set move to current state
-                self.swap(self.B, self.B + 1)
-            else:  # return the state of the move
-                return swap(self.State, self.B, self.B + 1)
-
+    # Finds the location of the b tile
     def findB(self):
         for i in range(len(self.State)):
             if self.State[i] == 'b':
                 self.B = i  # new B's location
                 break
 
-    def swap(self, x, y):
+    # Swaps the location of the b tile with y
+    # setting ( 0 = return states instead of setting them, 1 = set states at each move)
+    def swap(self, b, y, direction=None, setting=1):
         state = list(self.State)
         # performs a switch
         temp = state[y]
-        state[y] = state[x]
-        state[x] = temp
+        state[y] = state[b]
+        state[b] = temp
         # update B's location
-        self.B = y
-        self.State = str(''.join(state))
+        if setting == 1:
+            self.B = y
+            self.State = str(''.join(state))
+        else:
+            return EightPuzzle(state=str(''.join(state)), parent=(direction, self), b=y, depth=self.Depth + 1)
 
 
-def swap(puzzle, x, y):
-    state = list(puzzle)
-    # performs a switch
-    temp = state[y]
-    state[y] = state[x]
-    state[x] = temp
-    return str(''.join(state))
+# Moves the tile up, down, left, right
+# setting ( 0 = return states instead of setting them, 1 = set states at each move)
+# the setting in this case is just to pass it along to lower level helpers
+def move(puzzle: EightPuzzle, setting=1) -> List[EightPuzzle]:
+    moves = []
+    try:
+        moves.append(moveUp(puzzle, setting))  # move up
+    except UnboundLocalError:  # cant go up
+        pass
+    try:
+        moves.append(moveDown(puzzle, setting))  # move down
+    except UnboundLocalError:  # cant go down
+        pass
+    try:
+        moves.append(moveLeft(puzzle, setting))  # move left
+    except UnboundLocalError:  # cant go left
+        pass
+    try:
+        moves.append(moveRight(puzzle, setting))  # move right
+    except UnboundLocalError:  # cant go right
+        pass
+    return moves
+
+
+# Moves the blank tile up
+# setting ( 0 = return states instead of setting them, 1 = set states at each move)
+def moveUp(puzzle, setting=1):
+    if (puzzle.B - 3) < 0:  # check to see if it's in bounds
+        raise UnboundLocalError
+    else:
+        if setting == 1:  # set move to current state
+            puzzle.swap(puzzle.B, puzzle.B - 3, setting)
+
+        else:  # return the node made from moving
+            return puzzle.swap(puzzle.B, puzzle.B - 3, "Up", setting)
+
+
+# Moves the blank tile down
+# setting ( 0 = return states instead of setting them, 1 = set states at each move)
+def moveDown(puzzle, setting=1):
+    if (puzzle.B + 3) > 8:  # check to see if it's in bounds
+        raise UnboundLocalError
+    else:
+        if setting == 1:  # set move to current state
+            puzzle.swap(puzzle.B, puzzle.B + 3, setting)
+        else:  # return the node made from moving
+            return puzzle.swap(puzzle.B, puzzle.B + 3, "Down", setting)
+
+
+# Moves the blank tile left
+# setting ( 0 = return states instead of setting them, 1 = set states at each move)
+def moveLeft(puzzle, setting=1):
+    if (puzzle.B % 3) == 0:  # check to see if it's in bounds
+        raise UnboundLocalError
+    else:
+        if setting == 1:  # set move to current state
+            puzzle.swap(puzzle.B, puzzle.B - 1, setting)
+        else:  # return the node made from moving
+            return puzzle.swap(puzzle.B, puzzle.B - 1, "Left", setting)
+
+
+# Moves the blank tile right
+# setting ( 0 = return states instead of setting them, 1 = set states at each move)
+def moveRight(puzzle, setting=1):
+    if (puzzle.B + 1) % 3 == 0:  # check to see if it's in bounds
+        raise UnboundLocalError
+    else:
+        if setting == 1:  # set move to current state
+            puzzle.swap(puzzle.B, puzzle.B + 1, setting)
+        else:  # return the node made from moving
+            return puzzle.swap(puzzle.B, puzzle.B + 1, "Right", setting)
 
 
 def solve_Beam():
