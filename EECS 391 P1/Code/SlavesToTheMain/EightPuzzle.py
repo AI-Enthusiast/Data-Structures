@@ -6,8 +6,6 @@ import random
 import sys
 from typing import List
 
-from Code.SlavesToTheMain import AStar
-
 random.seed(13)
 goal = ['b', '1', '2', '3', '4', '5', '6', '7', '8']
 
@@ -28,7 +26,7 @@ class EightPuzzle:
     State = ...  # type: str
 
     # Constructor
-    # Params: state(as a string of length 9), parent (TEMP TBA), b(location of the b tile)
+    # Params: state(as a string of length 9), parent (type: EightPuzzle), b(location of the b tile)
     def __init__(self, state="random", random=100, parent=None, b=None, depth=0):
         self.Parent = parent
         self.B = b
@@ -48,12 +46,13 @@ class EightPuzzle:
                 error(e)
                 # TODO double check user inputed states are solvable
                 print('Setting state to random instead')
-                self.randomizeState()
+                self.randomizeState(random)
 
     # allows for EightPuzzle() < EightPuzzle() conparison
     def __lt__(self, other):
         return self.__hash__() < other.__hash__()
 
+    # Confirms the given state is valid
     def validState(self, state):
         # double checks it's of the right length(you can never trust the user)
         if len(state) == 9:
@@ -75,15 +74,15 @@ class EightPuzzle:
                 "You entered a string of length", len(state), state)
 
     # Creates a random starting state
-    def randomizeState(self, r=100):
+    def randomizeState(self, r):
         self.State = 'b12345678'  # sets 1d state
         self.B = 0  # location of the b tile
-        # loop moves the blank piece 100 times in random directions
+        # loop moves the blank piece 100 times in r directions
         for i in range(0, r):
             moves = move(self, 0)  # type: List[EightPuzzle]
-            ran = random.randint(0, len(moves) - 1)  # produce a random int between 1 and num of moves
+            ran = random.randint(0, len(moves) - 1)  # produce a r int between 1 and num of moves
             try:
-                self.State = moves[ran].State  # sets state to chosen random move
+                self.State = moves[ran].State  # sets state to chosen r move
                 self.findB()  # updates the location of the b tile
             except UnboundLocalError:  # if it can't move that way
                 i += 1  # don't let it miss a move
@@ -92,20 +91,23 @@ class EightPuzzle:
     # creates a string to visually represent the board
     def __str__(self):
         tile = self.State
-        out = "\n{0}\t{1}\t{2}\n" \
+        out = "{0}\t{1}\t{2}\n" \
               "{3}\t{4}\t{5}\n" \
-              "{6}\t{7}\t{8}\n".format(
+              "{6}\t{7}\t{8}".format(
             tile[0], tile[1], tile[2],
             tile[3], tile[4], tile[5],
             tile[6], tile[7], tile[8])
         print(out)
 
     # Creates the path to the parent from the current node (this assumes that node is the goal)
-    def generateSolutionPath(self, path: List = []):
-        if self.Parent is None:
-            path.reverse()
-            return ' --> '.join(path)  # reverse order as they are added in
-        else:
+    def generateSolutionPath(self, path=None):
+        if path is None:
+            path = []
+        if self.Parent is None: # your at the top
+            path.reverse() # reverse order as they are added in
+            print("Number of moves:", len(path))
+            print(' --> '.join(path))
+        else: # there are still parent nodes
             path.append(self.Parent[0])
             return self.Parent[1].generateSolutionPath(path)  # recursively self call for path
 
@@ -205,12 +207,47 @@ def moveRight(puzzle, setting=1):
             return puzzle.swap(puzzle.B, puzzle.B + 1, "Right", setting)
 
 
-def solve_Beam():
-    print('temp')
+# First Heuristic is based on the number of tiles out of place
+# the less the better
+def h1(puzzle):
+    numOutOfPlace = 0
+    for i in range(len(goal)):
+        if goal[i] != puzzle.State[i]:
+            numOutOfPlace += 1
+    return numOutOfPlace
 
 
-def solve_AStar(state):
-    AStar.AStar(state)
+# Second heuristic is based on the distance of tiles to goal state (Manhattan Distance)
+# the less the better
+def h2(puzzle):
+    distTot = 0  # var for total distance
+    for i in range(len(goal)):
+        if puzzle.State[i] == goal[i]:  # if it's already on the right one
+            continue
+        else:
+            tilePos = 0
+            for j in range(len(puzzle.State)):
+                if puzzle.State[j] == goal[i]:  # if you find the current possion of the tile
+                    tilePos = j
+                    break  # break the loop cb tile found
+            while tilePos != i:
+                if i < tilePos:  # if the tile needs to be moved up or left
+                    if tilePos - 3 >= 0 and tilePos - 3 >= i:  # if it needs to be moved up
+                        tilePos -= 3  # move the tile up
+                        distTot += 1
+                    elif tilePos - i < 3:  # if the tile needs to be moved left
+                        dist = tilePos - i
+                        tilePos -= dist
+                        distTot += dist
+                elif i > tilePos:  # if the tile needs to be moved down or right
+                    if tilePos + 3 <= 8 and tilePos + 3 <= i:  # if it needs to be moved down
+                        tilePos += 3
+                        distTot += 1
+                    elif i - tilePos < 3:  # if the tile needs to be moved right
+                        dist = i - tilePos
+                        tilePos += dist
+                        distTot += dist
+    return distTot
 
 
 if __name__ == '__main__':
